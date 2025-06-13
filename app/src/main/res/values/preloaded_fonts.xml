@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="preloaded_fonts" translatable="false">
+        <item>@font/</item>
+        <item>@font/anek_malayalam</item>
+        <item>@font/arimo_medium</item>
+        <item>@font/chivo</item>
+        <item>@font/dm_sans_medium</item>
+        <item>@font/flow_block</item>
+        <item>@font/ibm_plex_sans_thai_looped</item>
+        <item>@font/inter</item>
+        <item>@font/kanit</item>
+        <item>@font/karla_medium</item>
+        <item>@font/kavivanar</item>
+        <item>@font/noto_sans_gothic</item>
+        <item>@font/roboto</item>
+    </array>
+</resources>

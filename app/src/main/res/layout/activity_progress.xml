@@ -1,0 +1,241 @@
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/progress_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:divider="@drawable/divider_smaller"
+        android:showDividers="beginning">
+
+        <TextView
+            android:id="@+id/textViewDate"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:gravity="center|bottom"
+            android:hint="date"
+            android:text=""
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textViewTime"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:gravity="center"
+            android:hint="time"
+            android:text=""
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:divider="@drawable/divider_smaller"
+            android:orientation="vertical"
+            android:showDividers="beginning|middle">
+
+            <TextView
+                android:id="@+id/textViewCurrentInfo"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:gravity="center"
+                android:text=""
+                android:hint="@string/current_data_hint"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider">
+
+                <Button
+                    android:id="@+id/buttonStepsCurrent"
+                    android:layout_width="0dp"
+                    android:layout_marginLeft="1dp"
+                    android:layout_weight="1"
+                    android:layout_height="55dp"
+                    android:backgroundTint="#094557"
+                    android:fontFamily="@font/roboto"
+                    android:gravity="center"
+                    android:textColor="@color/white"
+                    android:text="@string/steps"/>
+
+                <Button
+                    android:id="@+id/buttonDistanceCurrent"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="55dp"
+                    android:backgroundTint="#094557"
+                    android:fontFamily="@font/roboto"
+                    android:gravity="center"
+                    android:textColor="@color/white"
+                    android:text="@string/distance"/>
+
+                <Button
+                    android:id="@+id/buttonCaloriesCurrent"
+                    android:layout_width="0dp"
+                    android:layout_marginRight="1dp"
+                    android:layout_weight="1"
+                    android:layout_height="55dp"
+                    android:backgroundTint="#094557"
+                    android:fontFamily="@font/roboto"
+                    android:gravity="center"
+                    android:textColor="@color/white"
+                    android:text="@string/calories"/>
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider">
+
+                <TextView
+                    android:id="@+id/textViewCurrentTemp"
+                    android:layout_width="200dp"
+                    android:layout_height="80dp"
+                    android:gravity="center|start"
+                    android:text='@string/current_temp'
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/textViewTempValue"
+                    android:layout_width="200dp"
+                    android:layout_height="80dp"
+                    android:gravity="center"
+                    android:hint="-"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider">
+
+                <TextView
+                    android:id="@+id/textViewFeelsLike"
+                    android:layout_width="200dp"
+                    android:layout_height="80dp"
+                    android:gravity="center|start"
+                    android:text='@string/feels_like'
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/textViewFeelsLikeValue"
+                    android:layout_width="200dp"
+                    android:layout_height="80dp"
+                    android:gravity="center"
+                    android:hint="-"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/textViewCity"
+                    android:layout_width="200dp"
+                    android:layout_height="80dp"
+                    android:gravity="center|start"
+                    android:text="@string/current_city_name"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    />
+                <TextView
+                    android:id="@+id/textViewCityChangable"
+                    android:layout_width="200dp"
+                    android:layout_height="80dp"
+                    android:gravity="center"
+                    android:hint="city name"
+                    android:text=""
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/textViewHistoricalData"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="@string/past_data_header"
+                android:textSize="20sp"
+                android:gravity="center"
+                android:background="#BF094557"
+                android:textColor="#FFFFFF"
+                />
+
+            <com.github.mikephil.charting.charts.BarChart
+                android:id="@+id/chartDb"
+                android:layout_width="match_parent"
+                android:layout_height="300dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:divider="@drawable/divider">
+
+                <Button
+                    android:id="@+id/buttonStepsDb"
+                    android:layout_width="0dp"
+                    android:layout_marginLeft="1dp"
+                    android:layout_weight="1"
+                    android:layout_height="55dp"
+                    android:backgroundTint="#094557"
+                    android:fontFamily="@font/roboto"
+                    android:gravity="center"
+                    android:textColor="@color/white"
+                    android:text="@string/steps"/>
+
+                <Button
+                    android:id="@+id/buttonDistanceDb"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="55dp"
+                    android:backgroundTint="#094557"
+                    android:fontFamily="@font/roboto"
+                    android:gravity="center"
+                    android:textColor="@color/white"
+                    android:text="@string/distance"/>
+
+                <Button
+                    android:id="@+id/buttonCaloriesDb"
+                    android:layout_width="0dp"
+                    android:layout_marginRight="1dp"
+                    android:layout_weight="1"
+                    android:layout_height="55dp"
+                    android:backgroundTint="#094557"
+                    android:fontFamily="@font/roboto"
+                    android:gravity="center"
+                    android:textColor="@color/white"
+                    android:text="@string/calories"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="#00CCCCCC" />
+    </LinearLayout>
+</ScrollView>
