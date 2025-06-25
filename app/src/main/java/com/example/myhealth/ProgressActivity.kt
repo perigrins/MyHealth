@@ -100,7 +100,11 @@ class ProgressActivity : AppCompatActivity() {
 
     // used to refresh UI
     private var stepsJob: Job? = null
+    private var distanceJob: Job? = null
+    private var caloriesJob: Job? = null
     private var stepsChartJob: Job? = null
+    private var distanceChartJob: Job? = null
+    private var caloriesChartJob: Job? = null
 
     /**
      * Called when the ProgressActivity is created
@@ -182,11 +186,13 @@ class ProgressActivity : AppCompatActivity() {
         displayStepsChartByDefault()
 
         stepsButton.setOnClickListener {
+            distanceJob?.cancel()
+            caloriesJob?.cancel()
             val db = FirebaseDatabase.getInstance()
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
             val stepsRef = db.getReference("steps").child(uid).child(currentDate)
 
-            lifecycleScope.launch {
+            stepsJob = lifecycleScope.launch {
                 while (isActive) {
                     stepsRef.addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(snapshot: DataSnapshot) {
@@ -205,11 +211,12 @@ class ProgressActivity : AppCompatActivity() {
 
         distanceButton.setOnClickListener {
             stepsJob?.cancel()
+            caloriesJob?.cancel()
             val db = FirebaseDatabase.getInstance()
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
             val distanceRef = db.getReference("distance").child(uid).child(currentDate)
 
-            lifecycleScope.launch {
+            distanceJob = lifecycleScope.launch {
                 while (isActive) {
                     distanceRef.addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(snapshot: DataSnapshot) {
@@ -228,11 +235,12 @@ class ProgressActivity : AppCompatActivity() {
 
         caloriesButton.setOnClickListener {
             stepsJob?.cancel()
+            distanceJob?.cancel()
             val db = FirebaseDatabase.getInstance()
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
             val caloriesRef = db.getReference("calories").child(uid).child(currentDate)
 
-            lifecycleScope.launch {
+            caloriesJob = lifecycleScope.launch {
                 while (isActive) {
                     caloriesRef.addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(snapshot: DataSnapshot) {
@@ -252,9 +260,11 @@ class ProgressActivity : AppCompatActivity() {
         // past plots ------------------------------------------------------------
 
         pastStepsButton.setOnClickListener {
+            distanceChartJob?.cancel()
+            caloriesChartJob?.cancel()
             val db = FirebaseDatabase.getInstance()
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
-            lifecycleScope.launch {
+            stepsChartJob = lifecycleScope.launch {
                 while (isActive) {
                     val stepsRef = db.getReference("steps").child(uid)
                     loadDataAndShowChart(stepsRef, chartDatabase)
@@ -266,9 +276,10 @@ class ProgressActivity : AppCompatActivity() {
 
         pastDistanceButton.setOnClickListener {
             stepsChartJob?.cancel()
+            caloriesChartJob?.cancel()
             val db = FirebaseDatabase.getInstance()
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
-            lifecycleScope.launch {
+            distanceChartJob = lifecycleScope.launch {
                 while (isActive) {
                     val distanceRef = db.getReference("distance").child(uid)
                     loadDataAndShowChart(distanceRef, chartDatabase)
@@ -280,9 +291,10 @@ class ProgressActivity : AppCompatActivity() {
 
         pastCaloriesButton.setOnClickListener {
             stepsChartJob?.cancel()
+            distanceChartJob?.cancel()
             val db = FirebaseDatabase.getInstance()
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
-            lifecycleScope.launch {
+            caloriesChartJob = lifecycleScope.launch {
                 while (isActive) {
                     val caloriesRef = db.getReference("calories").child(uid)
                     loadDataAndShowChart(caloriesRef, chartDatabase)

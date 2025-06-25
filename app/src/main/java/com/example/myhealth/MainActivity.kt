@@ -146,7 +146,7 @@ class MainActivity : AppCompatActivity() {
 
             lifecycleScope.launch {
                 while (true) {
-                    delay(5000)
+                    delay(2000)
                 }
             }
         } else {
