@@ -20,7 +20,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.myhealth.Model.CurrentResponseApi
 import com.example.myhealth.ViewModel.WeatherViewModel
@@ -52,6 +51,11 @@ import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class ProgressActivity : AppCompatActivity() {
 
@@ -94,6 +98,30 @@ class ProgressActivity : AppCompatActivity() {
     // current date val
     private lateinit var currentDate : String
 
+    // used to refresh UI
+    private var stepsJob: Job? = null
+    private var stepsChartJob: Job? = null
+
+    /**
+     * Called when the ProgressActivity is created
+     *
+     * This method sets up the UI with edge-to-edge layout support and initializes
+     * Firebase database references and UI elements for displaying step, distance,
+     * calories data, and weather information
+     *
+     * Initializes the step counter sensor and location services
+     * Requests necessary permissions for activity recognition and notifications
+     * Loads current and historical user activity data from Firebase
+     *
+     * Button click listeners are set up to fetch and display current day data or past data charts
+     * for steps, distance, and calories from Firebase Realtime Database
+     *
+     * Fetches the last known location and updates weather information
+     * Loads user goals from Firebase if a user is logged in
+     *
+     * @param savedInstanceState if the activity is being re-initialized after previously
+     * being shut down, this Bundle contains the data it most recently supplied
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -150,55 +178,75 @@ class ProgressActivity : AppCompatActivity() {
         }
         pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
+        displayCurrentStepsByDefault()
+        displayStepsChartByDefault()
+
         stepsButton.setOnClickListener {
             val db = FirebaseDatabase.getInstance()
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
             val stepsRef = db.getReference("steps").child(uid).child(currentDate)
 
-            stepsRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val steps = snapshot.getValue(Int::class.java)
-                    currentData.text = getString(R.string.steps_today, steps)
-                }
+            lifecycleScope.launch {
+                while (isActive) {
+                    stepsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            val steps = snapshot.getValue(Int::class.java)
+                            currentData.text = getString(R.string.steps_today, steps)
+                        }
 
-                override fun onCancelled(error: DatabaseError) {
-                    Log.e("Firebase", "query cancelled", error.toException())
+                        override fun onCancelled(error: DatabaseError) {
+                            Log.e("Firebase", "query cancelled", error.toException())
+                        }
+                    })
+                    delay(2000)
                 }
-                })
+            }
         }
 
         distanceButton.setOnClickListener {
+            stepsJob?.cancel()
             val db = FirebaseDatabase.getInstance()
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
             val distanceRef = db.getReference("distance").child(uid).child(currentDate)
 
-            distanceRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val distance = snapshot.getValue(Int::class.java)
-                    currentData.text = getString(R.string.distance_today, distance)
-                }
+            lifecycleScope.launch {
+                while (isActive) {
+                    distanceRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            val distance = snapshot.getValue(Int::class.java)
+                            currentData.text = getString(R.string.distance_today, distance)
+                        }
 
-                override fun onCancelled(error: DatabaseError) {
-                    Log.e("Firebase", "query cancelled", error.toException())
+                        override fun onCancelled(error: DatabaseError) {
+                            Log.e("Firebase", "query cancelled", error.toException())
+                        }
+                    })
+                    delay(2000)
                 }
-                })
+            }
         }
 
         caloriesButton.setOnClickListener {
+            stepsJob?.cancel()
             val db = FirebaseDatabase.getInstance()
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
             val caloriesRef = db.getReference("calories").child(uid).child(currentDate)
 
-            caloriesRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val calories = snapshot.getValue(Int::class.java)
-                    currentData.text = getString(R.string.calories_today, calories)
-                }
+            lifecycleScope.launch {
+                while (isActive) {
+                    caloriesRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            val calories = snapshot.getValue(Int::class.java)
+                            currentData.text = getString(R.string.calories_today, calories)
+                        }
 
-                override fun onCancelled(error: DatabaseError) {
-                    Log.e("Firebase", "query cancelled", error.toException())
+                        override fun onCancelled(error: DatabaseError) {
+                            Log.e("Firebase", "query cancelled", error.toException())
+                        }
+                    })
+                    delay(2000)
                 }
-                })
+            }
         }
 
         // past plots ------------------------------------------------------------
@@ -206,25 +254,42 @@ class ProgressActivity : AppCompatActivity() {
         pastStepsButton.setOnClickListener {
             val db = FirebaseDatabase.getInstance()
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
-            val stepsRef = db.getReference("steps").child(uid)
-            loadDataAndShowChart(stepsRef, chartDatabase)
-            headerDbValues.text = getString(R.string.past_data_header_after_clicking, "steps")
+            lifecycleScope.launch {
+                while (isActive) {
+                    val stepsRef = db.getReference("steps").child(uid)
+                    loadDataAndShowChart(stepsRef, chartDatabase)
+                    headerDbValues.text = getString(R.string.past_data_header_after_clicking, "steps")
+                    delay(2000)
+                }
+            }
         }
 
         pastDistanceButton.setOnClickListener {
+            stepsChartJob?.cancel()
             val db = FirebaseDatabase.getInstance()
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
-            val distanceRef = db.getReference("distance").child(uid)
-            loadDataAndShowChart(distanceRef, chartDatabase)
-            headerDbValues.text = getString(R.string.past_data_header_after_clicking, "distance")
+            lifecycleScope.launch {
+                while (isActive) {
+                    val distanceRef = db.getReference("distance").child(uid)
+                    loadDataAndShowChart(distanceRef, chartDatabase)
+                    headerDbValues.text = getString(R.string.past_data_header_after_clicking, "distance")
+                    delay(2000)
+                }
+            }
         }
 
         pastCaloriesButton.setOnClickListener {
+            stepsChartJob?.cancel()
             val db = FirebaseDatabase.getInstance()
             val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
-            val caloriesRef = db.getReference("calories").child(uid)
-            loadDataAndShowChart(caloriesRef, chartDatabase)
-            headerDbValues.text = getString(R.string.past_data_header_after_clicking, "burned calories")
+            lifecycleScope.launch {
+                while (isActive) {
+                    val caloriesRef = db.getReference("calories").child(uid)
+                    loadDataAndShowChart(caloriesRef, chartDatabase)
+                    headerDbValues.text = getString(R.string.past_data_header_after_clicking, "burned calories")
+                    delay(2000)
+                }
+            }
         }
 
         // ------------------------------------------------------------------------
@@ -263,20 +328,70 @@ class ProgressActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Initializes realtime database
+     *
+     * Sets the main database reference as the entry point for database operations
+     */
     private fun initializeDbRef() {
         database = Firebase.database.reference
     }
 
-    // checking user's permission
-    /*private fun checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) !=
-            PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST_CODE)
-        } else {
-            getLastLocation()
+    /**
+     * Displays current steps value by default
+     *
+     * Refreshes UI every 5 seconds
+     */
+    private fun displayCurrentStepsByDefault() {
+        val db = FirebaseDatabase.getInstance()
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val stepsRef = db.getReference("steps").child(uid).child(currentDate)
+
+        stepsJob?.cancel()
+        stepsJob = lifecycleScope.launch {
+            while (isActive) {
+                stepsRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val steps = snapshot.getValue(Int::class.java)
+                        currentData.text = getString(R.string.steps_today, steps)
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        Log.e("Firebase", "query cancelled", error.toException())
+                    }
+                })
+                delay(2000)
+            }
         }
-    }*/
+    }
+
+    /**
+     * Displays past steps chart by default
+     *
+     * Refreshes UI every 5 seconds
+     */
+    fun displayStepsChartByDefault(){
+        val db = FirebaseDatabase.getInstance()
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        stepsChartJob?.cancel()
+        stepsChartJob = lifecycleScope.launch {
+            while (isActive) {
+                val stepsRef = db.getReference("steps").child(uid)
+                loadDataAndShowChart(stepsRef, chartDatabase)
+                headerDbValues.text = getString(R.string.past_data_header_after_clicking, "steps")
+                delay(2000)
+            }
+        }
+    }
+
+    /**
+     * Checks if the app has the necessary location permissions and requests them if not granted
+     *
+     * Verifies the permissions for fine location, coarse location and background location
+     * If any permissions are missing, requests them from the user
+     * If all permissions are granted,
+     * proceeds to get the last known location -> triggers [getLastLocation]
+     */
     private fun checkLocationPermission() {
         val permissionsNeeded = mutableListOf<String>()
 
@@ -307,8 +422,15 @@ class ProgressActivity : AppCompatActivity() {
         }
     }
 
-    // getting user's location usage permission
-    // calculating city name based on its lat & lon
+    /**
+     * Retrieves the device's last known location using fusedLocationClient
+     *
+     * Requires either `ACCESS_FINE_LOCATION` or `ACCESS_COARSE_LOCATION` permission
+     * If permissions are missing, the function returns without action
+     * On successful location retrieval, updates latitude and longitude variables
+     * and triggers a city name lookup bades on these values
+     * On failure, shows a toast message indicating the failure
+     */
     private fun getLastLocation() {
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) !=
@@ -330,17 +452,17 @@ class ProgressActivity : AppCompatActivity() {
             }
     }
 
-    // if location permission denied, make toast
-    /*override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
-            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                getLastLocation()
-            } else {
-                Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }*/
+    /**
+     * Handles the result of permission requests
+     *
+     * Checks if the location permission request was granted
+     * If all requested permissions are granted, proceeds to retrieve the last known location
+     * Otherwise shows a toast warning the user that some features may not work properly
+     *
+     * @param requestCode the integer request code originally supplied to requestPermissions()
+     * @param permissions the requested permissions
+     * @param grantResults the grant results for the corresponding permissions
+     */
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
@@ -353,8 +475,16 @@ class ProgressActivity : AppCompatActivity() {
         }
     }
 
-
-    // getting city name from its lat & lon
+    /**
+     * Retrieves the city name based on the provided latitude and longitude
+     *
+     * Uses Android's geocoder to convert coordinates into a city name
+     * If a city name is found, updates the UI and triggers the weather update function [weatherFun]
+     * If the city name is not found or an error occurs, shows a toast message
+     *
+     * @param latitude the latitude coordinate
+     * @param longitude the longitude coordinate
+     */
     private fun getCityName(latitude: Double, longitude: Double) {
         val geocoder = Geocoder(this, Locale.getDefault())
         try {
@@ -374,7 +504,16 @@ class ProgressActivity : AppCompatActivity() {
         }
     }
 
-    // getting data from api and modifying textViews
+    /**
+     * Fetches the current weather data for the specified latitude and longitude
+     *
+     * Uses weatherViewModel to load the current weather asynchronously.
+     * On a successful response, updates UI elements with temperature and feels like values
+     * If data is missing or the response fails, shows appropriate toast messages
+     *
+     * @param lati the latitude coordinate
+     * @param longi the longitude coordinate
+     */
     private fun weatherFun(lati : Double, longi : Double){
         weatherViewModel.loadCurrentWeather(lati, longi).enqueue(object:
             Callback<CurrentResponseApi> {
@@ -412,6 +551,16 @@ class ProgressActivity : AppCompatActivity() {
         })
     }
 
+    /**
+     * Imports user's goals from database
+     *
+     * Loads goals (steps, distance, calories) for a specific user
+     * Fetches the data under the "goals/{uid}" node
+     * Calls the provided onLoaded callback once loading is complete, regardless of success or failure
+     *
+     * @param uid the unique identifier of the user whose goals are being loaded
+     * @param onLoaded callback invoked after data loading finishes
+     */
     fun loadGoals(uid: String, onLoaded: () -> Unit) {
         val goalsRef = FirebaseDatabase.getInstance().getReference("goals").child(uid)
         goalsRef.addListenerForSingleValueEvent(object : ValueEventListener {
@@ -429,7 +578,13 @@ class ProgressActivity : AppCompatActivity() {
         })
     }
 
-    // historic data
+    /**
+    * Returns a list of strings representing the last three dates including today
+    *
+    * Dates are formatted as "dd-MM-yyyy"
+    *
+    * @return a list of three date strings: today, yesterday, and the day before yesterday
+    */
     fun getLast3Dates(): List<String> {
         val formatterDate = DateTimeFormatter.ofPattern("dd-MM-yyyy")
         val dates = mutableListOf<String>()
@@ -442,6 +597,16 @@ class ProgressActivity : AppCompatActivity() {
         return dates
     }
 
+    /**
+     * Loads integer data for the last three dates from Firebase Realtime Database and displays it on a BarChart
+     *
+     * Triggers [getLast3Dates] and retrieves data for each of the last three days (including today)
+     * Creates and configures a bar chart with this data
+     * Adapts chart colors to the current UI theme (dark or light)
+     *
+     * @param dataRef reference to the firebase database node containing the data
+     * @param barChart the BarChart view to display the loaded data
+     */
     fun loadDataAndShowChart(dataRef: DatabaseReference, barChart: BarChart) {
         val isDarkTheme = resources.configuration.uiMode and
                 Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES

@@ -53,6 +53,12 @@ class DataForegroundService : Service(), SensorEventListener {
     private var lastLocation: Location? = null
     private var lastLocationTime: Long = 0
 
+    /**
+     * Initializes the activity
+     *
+     * Sets up the step counter sensor and registers this class as its listener
+     * Initializes the fused location provider client and starts location updates
+     */
     override fun onCreate() {
         super.onCreate()
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
@@ -65,6 +71,13 @@ class DataForegroundService : Service(), SensorEventListener {
         startLocationUpdates()
     }
 
+    /**
+     * Starts location updates using the fused location provider
+     *
+     * Requests high accuracy location updates every 5 seconds (with a fastest interval of 3 seconds)
+     * On receiving a new location, calculates the speed based on distance from the last location and time elapsed
+     * Updates the current speed, last location, and last location timestamp accordingly
+     */
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
         val locationRequest = LocationRequest.create().apply {
@@ -94,7 +107,17 @@ class DataForegroundService : Service(), SensorEventListener {
 
     private var currentSpeed = 0.0 // m/s
 
-
+    /**
+     * Starts the service in the foreground with a persistent notification
+     *
+     * For Android 14+, uses the startForeground method
+     * with the `FOREGROUND_SERVICE_TYPE_HEALTH` flag to specify the service type
+     *
+     * @param intent the Intent supplied to startService, if any
+     * @param flags additional data about the start request
+     * @param startId a unique integer representing this specific request to start
+     * @return the startup mode for the service; here it returns [START_STICKY] to restart if killed
+     */
     @SuppressLint("ForegroundServiceType")
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val notification = createNotification(applicationContext)
@@ -111,13 +134,36 @@ class DataForegroundService : Service(), SensorEventListener {
         return START_STICKY
     }
 
+    /**
+     * Cleans up resources when the service/activity is destroyed
+     *
+     * Unregisters the sensor listener to prevent memory leaks
+     */
     override fun onDestroy() {
         super.onDestroy()
         sensorManager.unregisterListener(this)
     }
 
+    /**
+     * Returns null because this service is not designed for binding
+     *
+     * @param intent the Intent that was used to bind to this service
+     * @return always null since binding is not allowed
+     */
     override fun onBind(intent: Intent?): IBinder? = null
 
+    /**
+     * Called when the sensor detects a change (step counter sensor)
+     *
+     * Calculates the number of new steps since the last update
+     * Filters out unrealistic step counts if device rebooted (step count reset)
+     * Checks if the user is likely walking based on the current speed
+     *
+     * If new steps are detected and the user is walking (speed < 4 m/s)
+     * it calculates the distance and calories burned, then updates this data in Firebase
+     *
+     * @param event the sensor event containing the updated step count
+     */
     override fun onSensorChanged(event: SensorEvent?) {
         val totalSteps = event?.values?.get(0)?.toInt() ?: return
 
@@ -155,8 +201,23 @@ class DataForegroundService : Service(), SensorEventListener {
         }*/
     }
 
+    /**
+     * Called when the accuracy of the registered sensor has changed
+     *
+     * @param sensor the sensor whose accuracy changed
+     * @param accuracy the new accuracy of this sensor
+     * */
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
+    /**
+     * Updates the user's daily step count, distance, and calories data in Firebase Realtime Database
+     * Uses transactions to safely increment the existing values by the provided deltas
+     *
+     * @param date the date string (formatted) identifying the data entry to update
+     * @param stepsDelta the number of steps to add to the current step count
+     * @param distanceDelta the distance to add to the current distance
+     * @param caloriesDelta the calories to add to the current calories count
+     */
     private fun updateDataInFirebase(date: String, stepsDelta: Int, distanceDelta: Double, caloriesDelta: Double) {
         val database = FirebaseDatabase.getInstance()
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
@@ -196,6 +257,13 @@ class DataForegroundService : Service(), SensorEventListener {
         })
     }
 
+    /**
+     * Creates a foreground service notification to indicate that activity tracking is running
+     * Sets up a notification channel
+     *
+     * @param context the context used to create the notification and access system services
+     * @return the constructed Notification instance for use in foreground service
+     */
     private fun createNotification(context: Context): Notification {
         val notificationManager =
             context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager

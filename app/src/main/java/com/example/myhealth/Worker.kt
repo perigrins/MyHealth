@@ -34,6 +34,16 @@ class GoalCheckWorker(appContext: Context, workerParams: WorkerParameters) :
     private lateinit var builder2: NotificationCompat.Builder    // distance
     private lateinit var builder3: NotificationCompat.Builder    // calories
 
+    /**
+     * Performs the background work to check user's daily progress against set goals and sends notifications accordingly
+     *
+     * Fetches the current user's steps, distance, and calories data from Firebase Realtime Database for the current date
+     * along with the user's corresponding goals
+     * If any goal is exceeded and the app has notification permissions, sends a notification
+     * Ensures notifications are sent only once per day by checking shared preferences
+     *
+     * @return [Result.success] if the work completes without error
+     */
     override suspend fun doWork(): Result {
         val db = FirebaseDatabase.getInstance()
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return Result.success()
@@ -103,6 +113,15 @@ class GoalCheckWorker(appContext: Context, workerParams: WorkerParameters) :
         return Result.success()
     }
 
+    /**
+     * Creates notification channels and notification builders for goal achievement notifications
+     *
+     * Initializes three notifications for steps, distance, and calories goals
+     * Each notification includes an intent to open the [ProgressActivity] when tapped
+     * Sets up a notification channel
+     *
+     * @param context the application context used to create notifications and channels
+     */
     private fun createNotifications(context: Context) {
         val notificationManager =
             context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager

@@ -15,18 +15,19 @@
     <string name="distance_example">e.g. 2000 m</string>
     <string name="calories_example">e.g. 200 kcal</string>
     <string name="current_steps_hint">your steps will appear here</string>
-    <string name="current_temp">\t\tTemperature: </string>
-    <string name="feels_like">\t\tFeels like: </string>
+    <string name="current_temp">\t\tTemperature [°C]: </string>
+    <string name="feels_like">\t\tFeels like [°C]: </string>
     <string name="current_city_name">\t\tCurrent city: </string>
     <string name="login_or_register">Login or register here</string>
     <string name="past_data_header">\t\tSee your past data:</string>
     <string name="past_data_header_after_clicking">\t\tYour %1$s from last 3 days</string>
     <string name="hello_msg">Hello </string>
     <string name="button_log_out">Log out</string>
-    <string name="current_time">It`s %1$s right now!</string>
-    <string name="current_date">Today`s date: %1$s</string>
+    <string name="current_time">It\'s %1$s right now!</string>
+    <string name="current_date">Today\'s date: %1$s</string>
     <string name="steps_today">You have walked %1$d steps today.\nKeep going!</string>
     <string name="distance_today">You have traveled %1$d meters today!</string>
     <string name="calories_today">You have burned %1$d calories today! Good job!</string>
     <string name="current_data_hint">Press a button and see your stats for today!</string>
+    <string name="reset_passsword_button">Reset your password</string>
 </resources>

@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -26,7 +25,16 @@ class GoalsActivity : AppCompatActivity(){
     private lateinit var savingChangesButton : Button
     private lateinit var database: DatabaseReference
 
-
+    /**
+     * Called when the GoalsActivity is starting
+     *
+     * Sets up the UI with edge-to-edge layout and initializes database references
+     * Loads current user goals from Firebase and populates the input fields
+     * Handles validation and saving of updated goals to Firebase when the user clicks the save button
+     *
+     * @param savedInstanceState if the activity is being re-initialized after previously being shut down,
+     * this Bundle contains the data it most recently supplied
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -79,10 +87,24 @@ class GoalsActivity : AppCompatActivity(){
 
     }
 
+    /**
+     * Initializes realtime database
+     *
+     * Sets the main database reference as the entry point for database operations
+     */
     private fun initializeDbRef() {
         database = Firebase.database.reference
     }
 
+    /**
+     * Imports user's goals from database
+     *
+     * Loads goals (steps, distance, calories) for a specific user
+     * Fetches the data under the "goals/{uid}" node and updates both the shared data model
+     * and the corresponding UI input fields with the retrieved values
+     *
+     * @param uid The unique identifier of the user whose goals are being loaded
+     */
     fun loadGoals(uid: String) {
         val db = FirebaseDatabase.getInstance()
         val goalsRef = db.getReference("goals").child(uid)
@@ -110,6 +132,18 @@ class GoalsActivity : AppCompatActivity(){
         })
     }
 
+    /**
+     * Saves user's goals to database
+     *
+     * Saves goals (steps, distance, calories) for a specific user
+     * Stores the provided goal data under the "goals/{uid}" node
+     * Logs the result of the operation
+     *
+     * @param uid the unique identifier of the user
+     * @param stepsGoal the target number of steps
+     * @param distanceGoal the target distance
+     * @param caloriesGoal the target number of calories
+     */
     fun saveGoalsToFirebase(uid: String, stepsGoal: Int, distanceGoal: Int, caloriesGoal: Int) {
         val goalsRef = FirebaseDatabase.getInstance().getReference("goals").child(uid)
         val goalsMap = mapOf(
